@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Example</title>
+    <script src=
+                    "https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js">
+    </script>
+
+    <script src=
+                    "https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.js">
+    </script>
+
+    <link href=
+                  "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/ui-lightness/jquery-ui.css"
+          rel="stylesheet" type="text/css"/>
+    <h1>Welcome to LIB</h1>
+    <input type="text" id="tags">
+</head>
+<body>
+<!--<script type="text/javascript">-->
+<!--    var socket = new WebSocket('ws://' + window.location.host + '/ws/log/');-->
+
+<!--    socket.onmessage = function(e) {-->
+<!--        var data = JSON.parse(e.data);-->
+<!--        var message = data['message'];-->
+<!--        console.log(message);  // Or update the UI-->
+<!--    };-->
+
+<!--    socket.onclose = function(e) {-->
+<!--        console.error('WebSocket closed unexpectedly');-->
+<!--    };-->
+<!--</script>-->
+<script>
+    $( function() {
+    var availableTags = [
+        {% for author in authors %}
+            "{{author.first_name}}",
+            "{{author.last_name}}"
+        {% endfor %}
+    ];
+    $( "#tags" ).autocomplete({
+      source: availableTags
+    });
+  } );
+</script>
+</body>
+</html>
