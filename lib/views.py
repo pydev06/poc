@@ -7,8 +7,8 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from django.shortcuts import render
-from django.db.models import Q
+from django.db.models import Q, Count
+from django.db.models.deletion import ProtectedError
 
 
 # ListCreateAPIView for GET list and POST new entry
@@ -16,6 +16,37 @@ class AuthorListCreateView(generics.ListCreateAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
     print(serializer_class)
+
+
+# RetrieveUpdateDestroyAPIView for GET detail, PUT update, PATCH partial_update, and DELETE delete
+class AuthorDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Author.objects.all()
+    serializer_class = AuthorSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        try:
+            self.perform_destroy(instance)
+        except ProtectedError as e:
+            # You can customize the error message or use the default one
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, instance):
+        instance.delete()
+
+
+class AuthorDeleteView(APIView):
+    def delete(self, request, pk):
+        try:
+            author = Author.objects.get(pk=pk)
+            author.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Author.DoesNotExist:
+            return Response({'error': 'Author not found.'}, status=status.HTTP_404_NOT_FOUND)
+        except ProtectedError:
+            return Response({'error': 'Cannot delete author because it is referenced by books.'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class AuthorAutocomplete(generics.ListAPIView):
@@ -34,7 +65,7 @@ class AuthorAutocomplete(generics.ListAPIView):
                     Q(first_name__istartswith=name_parts[0]) |
                     Q(last_name__istartswith=name_parts[0])
                 )
-            elif len(name_parts) >=2:
+            elif len(name_parts) >= 2:
                 queryset = queryset.filter(
                     Q(first_name__istartswith=name_parts[0]) |
                     Q(last_name__istartswith=name_parts[1])
@@ -55,6 +86,31 @@ class PublisherDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Publisher.objects.all()
     serializer_class = PublisherSerializer
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        try:
+            self.perform_destroy(instance)
+        except ProtectedError as e:
+            # You can customize the error message or use the default one
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, instance):
+        instance.delete()
+
+
+class PublisherDeleteView(APIView):
+    def delete(self, request, pk):
+        try:
+            publisher = Publisher.objects.get(pk=pk)
+            publisher.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Publisher.DoesNotExist:
+            return Response({'error': 'Publisher not found.'}, status=status.HTTP_404_NOT_FOUND)
+        except ProtectedError:
+            return Response({'error': 'Cannot delete publisher because it is referenced by books.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
 
 class PublisherAutocomplete(generics.ListAPIView):
     queryset = Publisher.objects.all()
@@ -68,15 +124,27 @@ class BookListCreateView(generics.ListCreateAPIView):
     serializer_class = BookSerializer
 
 
-# RetrieveUpdateDestroyAPIView for GET detail, PUT update, PATCH partial_update, and DELETE delete
-class AuthorDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Author.objects.all()
-    serializer_class = AuthorSerializer
-
-
 class BookDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
+
+
+class BooksPerYear(APIView):
+    def get(self, request):
+        books_per_year = (Book.objects
+                          .values('publication_date')
+                          .annotate(count=Count('id'))
+                          .order_by('publication_date'))
+        return Response(books_per_year)
+
+
+class BooksPerAuthor(APIView):
+    def get(self, request):
+        books_per_author = Author.objects \
+            .annotate(book_count=Count('books')) \
+            .values('first_name', 'last_name', 'book_count') \
+            .order_by('-book_count')
+        return Response(books_per_author)
 
 
 class NumberFileUploadView(APIView):
@@ -99,10 +167,3 @@ class NumberFileUploadView(APIView):
                 "error": "The file contains non-numeric values"
             }, status=status.HTTP_400_BAD_REQUEST)
         return Response(number_list, status=status.HTTP_200_OK)
-
-
-def search_author(request):
-    query_set = Author.objects.all()
-    # print(query_set)
-    print({"authors": query_set})
-    return render(request, 'C:\\Users\\SII147\\POC Project - Django\\poc\\templates\\logs.html', {"authors": query_set})
