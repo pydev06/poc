@@ -1,7 +1,7 @@
 # your_app/routing.py
 from django.urls import re_path
-from . import consumers
+from .consumers import LogConsumer
 
 websocket_urlpatterns = [
-    re_path(r'ws/log/$', consumers.LogConsumer.as_asgi()),
+    re_path(r'ws/logs/$', LogConsumer.as_asgi()),
 ]
