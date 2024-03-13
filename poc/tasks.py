@@ -17,5 +17,5 @@ def start_logging_task():
     thread.start()
 
 
-# if __name__ == "__main__":
-#     start_logging_task()
+if __name__ == "__main__":
+    start_logging_task()
