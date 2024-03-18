@@ -1,22 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>WebSocket Test</title>
+    <title>WebSocket Log Viewer</title>
+    <!-- Include jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
 <body>
     <h1>WebSocket Log Messages</h1>
     <ul id="messages"></ul>
 
     <script>
-        var ws = new WebSocket('ws://127.0.0.1:8000/ws/logs/');
+        $(document).ready(function() {
+            var ws = new WebSocket('ws://127.0.0.1:5000/ws/logs/');
 
-        ws.onmessage = function(event) {
-            var message = JSON.parse(event.data).message;
-            var node = document.createElement("LI");
-            var textnode = document.createTextNode(message);
-            node.appendChild(textnode);
-            document.getElementById("messages").appendChild(node);
-        };
+            ws.onmessage = function(event) {
+                // Parse the incoming message
+                console.log(event)
+                var log = JSON.parse(event.data).message;
+                // Create a new list item for each incoming message using jQuery
+                $('#messages').append($('<li>').text(log));
+            };
+
+            ws.onerror = function(error) {
+                console.error("WebSocket error:", error);
+            };
+
+            ws.onopen = function() {
+                console.log("WebSocket connection established");
+            };
+
+            ws.onclose = function() {
+                console.log("WebSocket connection closed");
+            };
+        });
     </script>
 </body>
 </html>

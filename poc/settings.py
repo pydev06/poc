@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -42,7 +41,7 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 
-ASGI_APPLICATION = 'poc.routing.application'
+ASGI_APPLICATION = 'poc.asgi.application'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -73,7 +72,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'poc.wsgi.application'
+# WSGI_APPLICATION = 'poc.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -96,12 +95,12 @@ LOGGING = {
     'disable_existing_loggers': False,
     'handlers': {
         'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': r'logfile.log',
+            'level': 'INFO',
+            'class': 'poc.log.CustomFileHandler',
+            'filename': r'log_file.log'
         },
         'websocket': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'poc.websocket_logging_handler.WebSocketLoggingHandler',
         },
     },
@@ -113,8 +112,6 @@ LOGGING = {
         },
     },
 }
-
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

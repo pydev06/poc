@@ -8,11 +8,11 @@ class WebSocketLoggingHandler(logging.Handler):
         log_entry = self.format(record)
         channel_layer = get_channel_layer()
 
-        if channel_layer:
-            async_to_sync(channel_layer.group_send)(
-                "log_group",  # Channel group name
-                {
-                    "type": "log_message",
-                    "message": log_entry,
-                }
-            )
+        async_to_sync(channel_layer.group_send)(
+            "log_group",
+            {
+                "type": "log.message",
+                "message": log_entry,
+            }
+        )
+        print(f"Log message sent to group: {log_entry}")
